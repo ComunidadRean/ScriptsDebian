@@ -15,10 +15,11 @@ if  [ ! -d $LOGSDIR ]; then
 fi
 
 echo "Realizando copia de los logs..."
-tar czfv $LOGSDIR/$SERVER-$DATE-logs.tar.gz $CRASHDIR $LOGDIR
+tar czfv $LOGSDIR/$SERVER-$DATE-crash.tar.gz $CRASHDIR
+tar czfv $LOGSDIR/$SERVER-$DATE-logs.tar.gz $LOGDIR
 
 if  [ $DELETE = "y" ]; then
-	OLDDBS=`cd $LOGSDIR; find . -name "*-logs.tar.gz" -mtime +$DAYS`
+	OLDDBS=`cd $LOGSDIR; find . -name "*.tar.gz" -mtime +$DAYS`
 	REMOVE=`for file in $OLDDBS; do echo -n -e "delete ${file}\n"; done`
 		
 	cd $LOGSDIR; for file in $OLDDBS; do rm -v ${file}; done
@@ -34,9 +35,10 @@ if  [ $FTP = "y" ]; then
 
 	cd $LOGSDIR
 	ATTACH=`for file in *$DATE-logs.tar.gz; do echo -n -e "put ${file}\n"; done`
+	ATTACH2=`for file in *$DATE-crash.tar.gz; do echo -n -e "put ${file}\n"; done`
 
 	for KEY in "${!FTPHOST[@]}"; do
-		echo -e "\nConnecting to ${FTPHOST[$KEY]} with user ${FTPUSER[$KEY]}..."
+		echo -e "\Conectado a ${FTPHOST[$KEY]} bajo el usuario ${FTPUSER[$KEY]}..."
 		ftp -nvp <<EOF
 	open ${FTPHOST[$KEY]}
 	user ${FTPUSER[$KEY]} ${FTPPASS[$KEY]}
@@ -45,6 +47,7 @@ if  [ $FTP = "y" ]; then
 	cd ${FTPDIR[$KEY]}
 	$REMOVE
 	$ATTACH
+	$ATTACH2
 	quit
 EOF
 		done
